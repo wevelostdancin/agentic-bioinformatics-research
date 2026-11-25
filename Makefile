@@ -1,6 +1,9 @@
-.PHONY: check run sweep
+.PHONY: check run sweep bootstrap
 
 comma := ,
+
+bootstrap:
+	bash scripts/bootstrap.sh
 
 check:
 	uv run ruff check . && uv run pytest -q

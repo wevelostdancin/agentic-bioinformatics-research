@@ -25,6 +25,10 @@ uv run python experiments/_template/report.py
 Python 3.13 is pinned in `.python-version`; dependencies are locked in `uv.lock`.
 No global package installation is required or allowed.
 
+On a fresh machine, `make bootstrap` performs the whole setup in one command.
+See [ENVIRONMENT.md](docs/ENVIRONMENT.md) for the portability checklist and
+[data/manifest.yaml](data/manifest.yaml) for the pinned benchmark and data hashes.
+
 ## Reproducibility conventions
 
 - A run writes four artifacts to `experiments/<exp>/runs/<UTC-timestamp>-<seed>/`:
@@ -59,11 +63,14 @@ No global package installation is required or allowed.
 - [MUST-fixes implementation plan](docs/superpowers/plans/2026-11-25-reproducibility-must-fixes.md) — current
 - [Initial repository design](docs/superpowers/specs/2026-11-25-agentic-bioinformatics-research-repo-design.md) — historical
 - [Initial implementation plan](docs/superpowers/plans/2026-11-25-agentic-bioinformatics-research-repo.md) — historical
+- [Environment and portability](docs/ENVIRONMENT.md)
+- [Pinned benchmark and data manifest](data/manifest.yaml)
 - [Contributing guide](CONTRIBUTING.md)
 
 ## Roadmap
 
-1. Choose and pin a benchmark (BixBench or BioAgent Bench) with a data manifest.
+1. Download BioAgent Bench data (pinned in [data/manifest.yaml](data/manifest.yaml))
+   and fill in SHA256 hashes with `bash scripts/check-data.sh`.
 2. Add a single-agent baseline runner and one real harness adapter (LangGraph).
 3. Implement perturbation factors and judge agreement validation against manual labels.
 4. Run the first 2×2 factor experiment: model strength × orchestration protocol.

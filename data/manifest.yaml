@@ -1,0 +1,44 @@
+# Pinned benchmark and data provenance for reproducible runs on any machine.
+benchmark:
+  name: "BioAgent Bench"
+  paper: "arXiv:2601.21800v4"
+  paper_url: "https://arxiv.org/abs/2601.21800v4"
+  repository: "https://github.com/bioagent-bench/bioagent-bench"
+  commit: "6d098b602b8a8fdc33a9d25e410a502be7ed9ce0"
+  experiments_repository: "https://github.com/bioagent-bench/bioagent-experiments"
+  license: "CC-BY-4.0"
+  attribution: "BioAgent Bench contributors; link to the repository; indicate changes"
+  tasks: 10
+  verifiable_tasks: 4
+  resource_limits:
+    max_runtime_hours: 4
+    max_ram_gb: 48
+  grader:
+    model: "GPT-5.1"
+    fields:
+      - steps_completed
+      - steps_to_completion
+      - final_result_reached
+      - results_match
+      - f1_score
+  perturbations:
+    - prompt_bloat
+    - corrupted_inputs
+    - decoy_files
+
+data:
+  destination: "data/raw"
+  download_from:
+    repository: "https://github.com/bioagent-bench/bioagent-bench"
+    commit: "6d098b602b8a8fdc33a9d25e410a502be7ed9ce0"
+    cli: "uv run python src/dataset.py download --all --dest <destination> --reference --results"
+  # Fill after download with: bash scripts/check-data.sh
+  # Third-party datasets remain under their original owners' terms and licenses.
+  file_sha256: {}
+
+canaries:
+  location: "data/canaries"
+  rule: >-
+    Inject defects by mutating real code from the chosen task, not by synthesizing
+    code from scratch. Record the original file, mutation, and class for every canary.
+  note: "Plausibility is a requirement: implausible canaries measure a different process."

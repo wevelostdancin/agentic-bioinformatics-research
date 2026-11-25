@@ -13,9 +13,13 @@ build/
 .env.*
 !.env.example
 
-# локальные кэши и артефакты прогонов
+# local caches and run artifacts
 .uv-cache/
 .superpowers/
 runs/
 data/raw/*
 !data/raw/.gitkeep
+data/reference/*
+!data/reference/.gitkeep
+data/canaries/*
+!data/canaries/.gitkeep
