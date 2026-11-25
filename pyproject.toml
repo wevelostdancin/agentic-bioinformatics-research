@@ -1,16 +1,13 @@
 [project]
 name = "agentic-bioinformatics"
 version = "0.1.0"
-description = "Add your description here"
+description = "Research repo for LLM-based multi-agent systems in bioinformatics"
 readme = "README.md"
 authors = [
     { name = "Vitaly Pesnev", email = "255825640+wevelostdancin@users.noreply.github.com" }
 ]
 requires-python = ">=3.13"
 dependencies = []
-
-[project.scripts]
-agentic-bioinformatics = "agentic_bioinformatics:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]

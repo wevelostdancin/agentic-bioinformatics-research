@@ -12,3 +12,9 @@ build/
 .env
 .env.*
 !.env.example
+
+# локальные кэши и артефакты прогонов
+.uv-cache/
+runs/
+data/raw/*
+!data/raw/.gitkeep
