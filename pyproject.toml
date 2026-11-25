@@ -15,3 +15,10 @@ agentic-bioinformatics = "agentic_bioinformatics:main"
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "pyyaml>=6.0.4",
+    "ruff>=0.17.6",
+]
