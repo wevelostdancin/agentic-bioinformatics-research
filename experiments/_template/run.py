@@ -1,7 +1,9 @@
+import os
 from pathlib import Path
 
 import yaml
 
+from agentic_bioinformatics.repro import TokenCounter, set_seed
 from agentic_bioinformatics.run import (
     append_trace,
     new_run,
@@ -16,15 +18,21 @@ CONFIG = Path(__file__).with_name("config.yaml")
 
 def main() -> Path:
     config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
-    run_dir = new_run(config["name"], config["seed"], base=ROOT / "experiments")
+    seed = int(os.environ.get("SEED", config["seed"]))
+    config["seed"] = seed
+    set_seed(seed)
+    counter = TokenCounter()
+    run_dir = new_run(config["name"], seed, base=ROOT / "experiments")
     write_config(run_dir, config)
-    append_trace(run_dir, {"event": "start", "model": config["model"]})
+    append_trace(run_dir, {"event": "start", "model": config["model"], "seed": seed})
     write_metrics(
         run_dir,
         {
             "budget_tokens": config["budget_tokens"],
             "findings": 0,
             "evidence_class": config.get("evidence_class", "hypothesis"),
+            "repetition": seed,
+            "tokens_used": counter.as_dict(),
         },
     )
     write_summary(run_dir, f"# {config['name']}\n\nПрогон завершён, находок: 0.")
