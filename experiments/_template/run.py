@@ -3,6 +3,7 @@ from pathlib import Path
 
 import yaml
 
+from agentic_bioinformatics.provenance import require_valid_run, snapshot
 from agentic_bioinformatics.repro import TokenCounter, set_seed
 from agentic_bioinformatics.run import (
     append_trace,
@@ -22,6 +23,7 @@ def main() -> Path:
     config["seed"] = seed
     set_seed(seed)
     counter = TokenCounter()
+    config.update(snapshot(ROOT, config))
     run_dir = new_run(config["name"], seed, base=ROOT / "experiments")
     write_config(run_dir, config)
     append_trace(run_dir, {"event": "start", "model": config["model"], "seed": seed})
@@ -36,6 +38,7 @@ def main() -> Path:
         },
     )
     write_summary(run_dir, f"# {config['name']}\n\nПрогон завершён, находок: 0.")
+    require_valid_run(run_dir)
     return run_dir
 
 

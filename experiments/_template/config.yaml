@@ -6,3 +6,5 @@ harness_version: local
 seed: 42
 budget_tokens: 10000
 evidence_class: hypothesis
+prompt_version: v1
+tool_versions: {}

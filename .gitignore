@@ -15,6 +15,7 @@ build/
 
 # локальные кэши и артефакты прогонов
 .uv-cache/
+.superpowers/
 runs/
 data/raw/*
 !data/raw/.gitkeep
