@@ -32,6 +32,7 @@ def main() -> Path:
         {
             "budget_tokens": config["budget_tokens"],
             "findings": 0,
+            "confirmed_count": 0,
             "evidence_class": config.get("evidence_class", "hypothesis"),
             "repetition": seed,
             "tokens_used": counter.as_dict(),
