@@ -1,0 +1,4 @@
+name: _template
+model: deepseek
+seed: 42
+budget_tokens: 10000
