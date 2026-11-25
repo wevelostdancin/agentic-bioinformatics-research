@@ -33,5 +33,7 @@
 
 ## Документы
 
-- [Spec: дизайн репозитория](docs/superpowers/specs/2026-11-25-agentic-bioinformatics-research-repo-design.md)
-- [Plan: план выполнения](docs/superpowers/plans/2026-11-25-agentic-bioinformatics-research-repo.md)
+- [Spec: дизайн репозитория](docs/superpowers/specs/2026-11-25-agentic-bioinformatics-research-repo-design.md) — исторический
+- [Plan: исходный план](docs/superpowers/plans/2026-11-25-agentic-bioinformatics-research-repo.md) — исторический
+- [Spec: MUST-исправления](docs/superpowers/specs/2026-11-25-reproducibility-must-fixes-design.md) — актуальный
+- [Plan: MUST-исправления](docs/superpowers/plans/2026-11-25-reproducibility-must-fixes.md) — актуальный

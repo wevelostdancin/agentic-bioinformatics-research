@@ -15,14 +15,19 @@ def capture_recapture(n1: int, n2: int, m: int) -> float:
 
 def capture_recapture_ci(n1: int, n2: int, m: int) -> tuple[float, float]:
     _validate(n1, n2, m)
-    estimate = capture_recapture(n1, n2, m)
+    observed = n1 + n2 - m
     if m == 0:
-        return 0.0, float("inf")
+        return float(observed), float("inf")
+    estimate = capture_recapture(n1, n2, m)
     variance = (
         (n1 + 1) * (n2 + 1) * (n1 - m) * (n2 - m) / ((m + 1) ** 2 * (m + 2))
     )
     margin = 1.96 * math.sqrt(variance)
-    return estimate - margin, estimate + margin
+    lower = max(observed, estimate - margin)
+    upper = estimate + margin
+    if upper <= lower:
+        upper = lower + 1.0
+    return lower, upper
 
 
 def saturation_curve(counts: list[int]) -> list[float]:

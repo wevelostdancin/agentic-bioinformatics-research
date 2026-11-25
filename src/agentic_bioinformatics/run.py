@@ -4,7 +4,10 @@ from pathlib import Path
 
 import yaml
 
-from agentic_bioinformatics.evidence import _EVIDENCE
+from agentic_bioinformatics.evidence import (
+    _EVIDENCE,
+    EVIDENCE_CLASSES,  # noqa: F401
+)
 
 
 def new_run(exp: str, seed: int, base: Path = Path("experiments")) -> Path:
@@ -34,8 +37,8 @@ def write_summary(run_dir: Path, text: str) -> None:
     (run_dir / "summary.md").write_text(text.rstrip() + "\n", encoding="utf-8")
 
 
-def require_confirmed(evidence: str, artifact: Path | None = None) -> None:
+def require_confirmed(evidence: str, artifact: Path) -> None:
     if not _EVIDENCE.get(evidence, False):
         raise ValueError(f"{evidence!r} is not an executable proof")
-    if artifact is not None and not artifact.is_file():
+    if not artifact.is_file():
         raise FileNotFoundError(f"evidence artifact not found: {artifact}")

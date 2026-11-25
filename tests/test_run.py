@@ -25,10 +25,20 @@ def test_run_artifacts(tmp_path):
     assert (d / "metrics.json").exists()
 
 
-def test_confirmed_requires_proof():
+def test_confirmed_requires_proof(tmp_path):
     with pytest.raises(ValueError):
-        require_confirmed("hypothesis")
-    require_confirmed("reproducible_poc")
+        require_confirmed("hypothesis", tmp_path / "missing")
+    with pytest.raises(FileNotFoundError):
+        require_confirmed("reproducible_poc", tmp_path / "missing")
+    proof = tmp_path / "poc.txt"
+    proof.write_text("ok", encoding="utf-8")
+    require_confirmed("reproducible_poc", proof)
+
+
+def test_evidence_classes_reexported_from_run():
+    from agentic_bioinformatics.run import EVIDENCE_CLASSES
+
+    assert "reference_match" in EVIDENCE_CLASSES
 
 
 def test_new_run_paths_are_unique(tmp_path):
@@ -53,9 +63,11 @@ def test_new_run_refuses_existing_dir(tmp_path, monkeypatch):
         new_run("e", 1, base=tmp_path)
 
 
-def test_confirmed_accepts_test_and_ground_truth():
-    require_confirmed("reproducible_test")
-    require_confirmed("ground_truth")
+def test_confirmed_accepts_test_and_ground_truth(tmp_path):
+    proof = tmp_path / "proof.txt"
+    proof.write_text("ok", encoding="utf-8")
+    require_confirmed("reproducible_test", proof)
+    require_confirmed("ground_truth", proof)
 
 
 def test_confirmed_rejects_missing_artifact(tmp_path):

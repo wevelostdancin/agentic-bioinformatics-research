@@ -1,4 +1,6 @@
 import hashlib
+import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -51,12 +53,46 @@ def validate_run(run_dir: Path) -> list[str]:
     for name in ARTIFACTS:
         if not (run_dir / name).is_file():
             issues.append(f"missing {name}")
+    cfg = {}
     config_path = run_dir / "config.yaml"
     if config_path.is_file():
-        cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
-        for key in REQUIRED_CONFIG_FIELDS:
-            if key not in cfg:
-                issues.append(f"missing config field: {key}")
+        try:
+            cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError:
+            issues.append("invalid config.yaml")
+    for key in REQUIRED_CONFIG_FIELDS:
+        if key not in cfg:
+            issues.append(f"missing config field: {key}")
+    for key, length in (("git_sha", 40), ("uv_lock_sha256", 64)):
+        value = cfg.get(key)
+        if value is not None and (
+            not isinstance(value, str)
+            or not re.fullmatch(rf"[0-9a-f]{{{length}}}", value)
+        ):
+            issues.append(f"invalid {key}")
+    trace_text = ""
+    trace_path = run_dir / "trace.jsonl"
+    if trace_path.is_file():
+        trace_text = trace_path.read_text(encoding="utf-8").strip()
+    if not trace_text:
+        issues.append("empty trace.jsonl")
+    else:
+        for line in trace_text.splitlines():
+            try:
+                json.loads(line)
+            except json.JSONDecodeError:
+                issues.append("invalid trace.jsonl line")
+                break
+    metrics_path = run_dir / "metrics.json"
+    if metrics_path.is_file():
+        try:
+            metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            issues.append("invalid metrics.json")
+            metrics = {}
+        for key in ("findings", "confirmed_count", "evidence_class", "tokens_used"):
+            if key not in metrics:
+                issues.append(f"missing metrics field: {key}")
     return issues
 
 
