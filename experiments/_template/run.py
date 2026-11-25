@@ -6,12 +6,12 @@ import yaml
 from agentic_bioinformatics.provenance import require_valid_run, snapshot
 from agentic_bioinformatics.repro import TokenCounter, set_seed
 from agentic_bioinformatics.run import (
-    append_trace,
     new_run,
     write_config,
     write_metrics,
     write_summary,
 )
+from agentic_bioinformatics.trace import TraceEvent, append_event
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = Path(__file__).with_name("config.yaml")
@@ -26,7 +26,15 @@ def main() -> Path:
     config.update(snapshot(ROOT, config))
     run_dir = new_run(config["name"], seed, base=ROOT / "experiments")
     write_config(run_dir, config)
-    append_trace(run_dir, {"event": "start", "model": config["model"], "seed": seed})
+    append_event(
+        run_dir,
+        TraceEvent(
+            event="start",
+            agent_id="template",
+            role="executor",
+            tool_result=f"model={config['model']}, seed={seed}",
+        ),
+    )
     write_metrics(
         run_dir,
         {
