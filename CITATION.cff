@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it."
+title: "Agentic Bioinformatics Research: A Reproducible Environment for LLM-Based Multi-Agent Systems"
+authors:
+  - family-names: Pesnev
+    given-names: Vitaly
+version: 0.1.0
+date-released: 2026-11-25
+license: MIT
+repository-code: "https://github.com/wevelostdancin/agentic-bioinformatics-research"
+keywords:
+  - multi-agent systems
+  - large language models
+  - agent orchestration
+  - bioinformatics
+  - reproducibility
+  - verification
+abstract: >-
+  A research environment for experiments on orchestration, verification, and
+  completeness measurement in LLM-based multi-agent systems applied to
+  bioinformatics. The environment fixes dependencies, records provenance and
+  structured traces, uses executable evidence gates, and applies statistical
+  completeness estimates.

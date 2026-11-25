@@ -1,36 +1,37 @@
-# AGENTS.md — agentic-bioinformatics
+# AGENTS.md — agentic-bioinformatics-research
 
-## Окружение
-- Python: uv + .python-version, venv в .venv. Глобальный pip install запрещён.
-- Зависимости: uv add <pkg> (обновляет pyproject.toml и uv.lock).
-- Воспроизведение: `uv sync`. Замеры запускать через `.venv/bin/python`.
+## Environment
+- Python 3.13 via uv and `.python-version`; virtual environment in `.venv`. No global `pip install`.
+- Dependencies: `uv add <pkg>` (updates `pyproject.toml` and `uv.lock`).
+- Reproduce with `uv sync`. Run measurements with `.venv/bin/python`.
+- In sandboxed shells set `UV_CACHE_DIR` inside the workspace.
 
-## Проверки перед «готово»
+## Verification before "done"
 
     make check
 
-## Структура
-- `src/agentic_bioinformatics/` — переиспользуемый код: `run.py`, `metrics/`, `judge/`, `harness/`.
-- `experiments/<name>/` — один дизайн: `config.yaml`, `run.py`, `runs/`.
-- `data/raw/` — иммутабельные исходные данные; `data/reference/` — известная правда; `data/canaries/` — инжектированные известные дефекты.
-- `docs/superpowers/` — spec и планы; `docs/literature/` — карта литературы.
-- `notebooks/` — разведка, не источник правды; `tests/` — проверки.
+## Layout
+- `src/agentic_bioinformatics/` — reusable code: `run.py`, `metrics/`, `judge/`, `harness/`, `provenance.py`, `evidence.py`, `trace.py`, `repro.py`.
+- `experiments/<name>/` — one design: `config.yaml`, `run.py`, `runs/`.
+- `data/raw/` — immutable inputs; `data/reference/` — ground truth; `data/canaries/` — injected known defects.
+- `docs/superpowers/` — specs and plans; `docs/literature/` — literature map.
+- `notebooks/` — exploration only, never a source of truth; `tests/` — checks.
 
-## Эксперименты
-- Запуск: `make run EXP=<name>`; свип: `make sweep EXP=<name> SEEDS=1,2,3`; сводка: `uv run python experiments/_template/report.py`.
-- Каждый прогон пишет `config.yaml` (версии, git SHA, хэш `uv.lock`, хэши данных), `trace.jsonl` (события с ts/agent/tool/tokens), `metrics.json`, `summary.md` в `experiments/<name>/runs/<timestamp>-<seed>/`.
-- Seed применяется через `set_seed()`; 3–5 повторов агрегируются через `aggregate()` (mean ± CI); учитываются `tokens_used`.
-- Один меняющийся фактор за раз, равный токен-бюджет, байслайн «один агент» перед оркестрацией.
+## Experiments
+- Run: `make run EXP=<name>`; sweep: `make sweep EXP=<name> SEEDS=1,2,3`; summary: `uv run python experiments/_template/report.py`.
+- Every run writes `config.yaml` (versions, git SHA, `uv.lock` hash, data hashes), a structured `trace.jsonl` (ts/agent/tool/tokens), `metrics.json`, and `summary.md` to `experiments/<name>/runs/<timestamp>-<seed>/`.
+- Apply seeds with `set_seed()`; aggregate 3–5 repetitions with `aggregate()` (mean ± CI); record `tokens_used`.
+- Change one factor at a time, keep token budgets equal, and run a single-agent baseline before orchestration.
 
-## Правила доказательств
-- «Подтверждено» — только `Evidence`: PoC, воспроизводимый тест, крэш под санитайзером, ground truth или `reference_match`; обязательны proof-файл, команда и exit code 0.
-- «Опровергнуто» — только контр-доказательство, а не мнение LLM-судьи.
-- Полнота — оценка остатка и явные непокрытые зоны, а не гарантия.
+## Evidence rules
+- `confirmed` requires `Evidence`: PoC, reproducible test, sanitizer crash, ground truth, or `reference_match`; a proof artifact, a command, and `exit_code == 0` are mandatory.
+- `refuted` requires counter-evidence, never an LLM judge's opinion.
+- Completeness is an estimate of the remainder plus explicitly uncovered cells, never a guarantee.
 
-## Куда класть spec/plan
+## Where to put specs and plans
 - `docs/superpowers/specs/YYYY-MM-DD-*-design.md`
 - `docs/superpowers/plans/YYYY-MM-DD-*.md`
 
-## Правила
-- Lock-файл (uv.lock) коммитится — окружение воспроизводимо.
-- Секреты — только в .env (он в .gitignore), `.env.example` содержит заглушки.
+## Rules
+- Commit `uv.lock` — the environment must be reproducible.
+- Secrets belong in `.env` only (gitignored); `.env.example` contains placeholders.

@@ -46,7 +46,7 @@ def main() -> Path:
             "tokens_used": counter.as_dict(),
         },
     )
-    write_summary(run_dir, f"# {config['name']}\n\nПрогон завершён, находок: 0.")
+    write_summary(run_dir, f"# {config['name']}\n\nRun completed. Findings: 0.")
     require_valid_run(run_dir)
     return run_dir
 

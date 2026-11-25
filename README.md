@@ -1,39 +1,77 @@
-# agentic-bioinformatics
+# Agentic Bioinformatics Research
 
-Локальный репозиторий для исследований LLM-based multi-agent systems в биоинформатике:
-оркестрация агентов, верификация находок и оценка полноты покрытия.
+[![CI](https://github.com/wevelostdancin/agentic-bioinformatics-research/actions/workflows/ci.yml/badge.svg)](https://github.com/wevelostdancin/agentic-bioinformatics-research/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](pyproject.toml)
 
-## Воспроизведение
+A reproducible research environment for studying **LLM-based multi-agent systems (MAS)**
+in agentic bioinformatics. It focuses on three questions: how to orchestrate an agent
+team, how to verify its findings, and how to estimate how much of the search space
+remains uncovered.
 
-    uv sync
-    make check
+> **Status:** active scaffold. The reproducibility core is implemented and tested;
+> benchmark datasets and concrete agent implementations are not included yet (see Roadmap).
 
-## Эксперимент
+## Quickstart
 
-    make run EXP=<name>
-    make sweep EXP=<name> SEEDS=1,2,3
+```bash
+uv sync
+make check                          # ruff + pytest
+make run EXP=_template              # single run
+make sweep EXP=_template SEEDS=1,2,3
+uv run python experiments/_template/report.py
+```
 
-Каждый прогон фиксирует конфиг (версии модели и харнеса, git SHA, хэш `uv.lock`, хэши данных), сид, структурированный трейс, метрики и `summary.md` в `experiments/<name>/runs/`. `sweep` делает 3–5 повторов с разными сидами; `uv run python experiments/_template/report.py` печатает mean ± CI.
+Python 3.13 is pinned in `.python-version`; dependencies are locked in `uv.lock`.
+No global package installation is required or allowed.
 
-## Воспроизводимость
+## Reproducibility conventions
 
-- `set_seed()` реально детерминирует RNG; сид пишется в конфиг и имя прогона.
-- Полнота считается оценкой Chapmanа с доверительным интервалом; `m=0` означает «оценка не определена», а не ноль.
-- Подтверждение требует `Evidence`: исполняемая команда, exit code 0 и существующий proof-файл. Для био-задач есть класс `reference_match`.
-- Валидатор (`require_valid_run`) проверяет 4 артефакта и обязательные поля конфига.
-- Судья проверяется согласием: `cohen_kappa` и `position_swap_agreement`.
+- A run writes four artifacts to `experiments/<exp>/runs/<UTC-timestamp>-<seed>/`:
+  `config.yaml`, `trace.jsonl`, `metrics.json`, `summary.md`.
+- `config.yaml` records model and harness versions, git SHA, `uv.lock` hash,
+  input-data hashes, prompt/tool versions, seed and token usage.
+- `set_seed()` actually seeds the RNG; sweeps aggregate 3–5 repetitions as
+  mean ± confidence interval rather than reporting a single run.
+- Structured traces contain timestamps, agent ids, tool calls, and token counts,
+  so they can be annotated with the MAST failure taxonomy.
+- `confirmed` status requires an `Evidence` object: a proof artifact, an executed
+  command, and `exit_code == 0`. `reference_match` covers bioinformatics tasks
+  validated against ground truth instead of a binary proof of concept.
+- Completeness uses the Chapman capture-recapture estimator with a confidence
+  interval. A zero intersection means "undefined", not "zero".
+- `require_valid_run()` rejects incomplete or unproven runs.
 
-## Структура
+## Repository layout
 
-- `src/agentic_bioinformatics/` — переиспользуемый код (артефакты прогона, метрики, rubric, адаптеры харнесов).
-- `experiments/` — по папке на дизайн исследования.
-- `data/raw`, `data/reference`, `data/canaries` — данные, известная правда и канарейки.
-- `docs/superpowers` — spec и план; `docs/literature` — карта литературы.
-- `tests/` — проверки ядра воспроизводимости.
+| Path | Purpose |
+|---|---|
+| `src/agentic_bioinformatics/` | Reusable core: run artifacts, provenance, evidence, metrics, judge rubric, harness protocol |
+| `experiments/` | One directory per study: config, runner, runs |
+| `data/raw`, `data/reference`, `data/canaries` | Immutable inputs, ground truth, injected known defects |
+| `docs/superpowers/` | Design specs and implementation plans |
+| `docs/literature/` | Literature map (to be populated) |
+| `tests/` | Regression tests for the reproducibility core |
 
-## Документы
+## Documentation
 
-- [Spec: дизайн репозитория](docs/superpowers/specs/2026-11-25-agentic-bioinformatics-research-repo-design.md) — исторический
-- [Plan: исходный план](docs/superpowers/plans/2026-11-25-agentic-bioinformatics-research-repo.md) — исторический
-- [Spec: MUST-исправления](docs/superpowers/specs/2026-11-25-reproducibility-must-fixes-design.md) — актуальный
-- [Plan: MUST-исправления](docs/superpowers/plans/2026-11-25-reproducibility-must-fixes.md) — актуальный
+- [MUST-fixes design spec](docs/superpowers/specs/2026-11-25-reproducibility-must-fixes-design.md) — current
+- [MUST-fixes implementation plan](docs/superpowers/plans/2026-11-25-reproducibility-must-fixes.md) — current
+- [Initial repository design](docs/superpowers/specs/2026-11-25-agentic-bioinformatics-research-repo-design.md) — historical
+- [Initial implementation plan](docs/superpowers/plans/2026-11-25-agentic-bioinformatics-research-repo.md) — historical
+- [Contributing guide](CONTRIBUTING.md)
+
+## Roadmap
+
+1. Choose and pin a benchmark (BixBench or BioAgent Bench) with a data manifest.
+2. Add a single-agent baseline runner and one real harness adapter (LangGraph).
+3. Implement perturbation factors and judge agreement validation against manual labels.
+4. Run the first 2×2 factor experiment: model strength × orchestration protocol.
+
+## Citation
+
+See [`CITATION.cff`](CITATION.cff). If you use this code, please cite the repository.
+
+## License
+
+[MIT](LICENSE) © 2026 Vitaly Pesnev

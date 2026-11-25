@@ -2,6 +2,7 @@
 name = "agentic-bioinformatics"
 version = "0.1.0"
 description = "Research repo for LLM-based multi-agent systems in bioinformatics"
+license = "MIT"
 readme = "README.md"
 authors = [
     { name = "Vitaly Pesnev", email = "255825640+wevelostdancin@users.noreply.github.com" }

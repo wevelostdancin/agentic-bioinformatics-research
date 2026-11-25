@@ -1,146 +1,125 @@
-# Дизайн: локальный репозиторий и среда для исследований LLM-based MAS в биоинформатике
+# Design: Local Repository and Environment for LLM-Based MAS Research in Bioinformatics
 
-Дата: 2026-11-25
-Статус: дизайн согласован в чате, ожидает ревью written spec
+Date: 2026-11-25
+Status: historical — superseded by the reproducibility MUST-fixes spec
 
-## 1. Контекст и цель
+## 1. Context and goal
 
-Пользователь начинает исследования в области LLM-based multi-agent systems (MAS),
-домен — agentic bioinformatics. Требуется один чистый, профессиональный и
-воспроизводимый репозиторий с локальной средой, в котором можно ставить эксперименты
-по трём вопросам, уже обсуждённым в переписке:
+The user is starting research on LLM-based multi-agent systems (MAS) with a focus on
+agentic bioinformatics. A clean, professional, reproducible local repository and
+environment are needed for experiments on:
 
-1. Как оркестрировать рой агентов (топология, делегирование, дебаты, арбитр).
-2. Как верифицировать находки (оракулы, PoC, классы доказательств).
-3. Как оценивать полноту покрытия (capture-recapture, канарейки, насыщение).
+1. orchestrating an agent team (topology, delegation, debate, arbiter);
+2. verifying findings (oracles, PoCs, evidence classes);
+3. estimating coverage/completeness (capture-recapture, canaries, saturation).
 
-**Критерий успеха:** на другой машине (или через месяц) любой зафиксированный прогон
-можно воспроизвести по инструкции; каждый результат имеет конфиг, сид, трейс и
-явный класс доказательства; окружение не зависит от глобально установленных пакетов.
+**Success criterion:** on another machine (or a month later) any recorded run can be
+reproduced from the documented procedure; every result has a config, a seed, a trace,
+and an explicit evidence class; the environment does not depend on globally installed
+packages.
 
-## 2. Что уже есть и ограничения
+## 2. Existing state and constraints
 
-- `/Users/vitalypesnev/Projects/research` не является git-репозиторием.
-- Внутри есть пустая папка `agentic bioinformatics` (имя с пробелом) — неудобна
-  для инструментов, подлежит удалению после проверки, что она действительно пуста.
-- Контракт машины (`~/.dsh/AGENTS.md`):
-  - `python3` → miniforge base 3.13; системный `/usr/bin/python3` не трогать;
-  - окружения только внутри проекта (`.venv` / `uv sync`); глобальный `pip install`
-    в base запрещён; `conda`-env `rvk`, `rvk_analysis` не пересоздавать;
-  - lock-файлы (`uv.lock`) обязательно коммитить;
-  - git identity уже настроен, rewrite HTTPS→SSH включён;
-  - секреты не читать и не печатать без нужды, never commit;
-  - перед `rm`/`mv` печатать абсолютные пути и проверять.
-- Пользователь явно выбрал: создать **приватный GitHub-репозиторий** и запушить каркас.
-  Это единственное внешнее действие, разрешённое пользователем.
+- The parent folder was not a git repository; it contained an empty directory with a
+  space in its name, which was removed after verifying its absolute path and emptiness.
+- Machine contract (`~/.dsh/AGENTS.md`): `python3` is miniforge 3.13; environments live
+  inside projects (`.venv` / `uv sync`); global `pip install` is forbidden; lock files are
+  committed; secrets are never printed or committed; absolute paths are checked before
+  `rm`/`mv`.
+- The user explicitly chose to create a **private GitHub repository** and push the scaffold.
 
-## 3. Рассмотренные подходы
+## 3. Approaches considered
 
-| Подход | Плюсы | Минусы | Решение |
+| Approach | Pros | Cons | Decision |
 |---|---|---|---|
-| `newproj <name>` | Соответствует контракту машины: uv, `.venv`, `uv.lock`, `.gitignore`, `README.md`, `AGENTS.md`, git, GitHub — одной командой | Создаётremote по умолчанию (здесь это желаемо) | **Выбран** |
-| Ручной `git init` в существующей папке | Полный контроль | Нарушает правило «новый проект только через newproj»; легко забыть lock/ignore | Отвергнут |
-| Cookiecutter / research-template | Готовые структура и CI | Лишний слой абстракции, не соответствует контракту машины, YAGNI | Отвергнут |
+| `newproj <name>` | Sanctioned: uv project, `.venv`, `uv.lock`, ignore rules, README, AGENTS.md, git, GitHub in one command | Creates a remote by default (desired here) | **Chosen** |
+| Manual `git init` in the existing folder | Full control | Violates the "new project only via newproj" rule; easy to forget lock/ignore | Rejected |
+| Cookiecutter / research template | Ready-made layout and CI | Extra abstraction layer, incompatible with the machine contract, YAGNI | Rejected |
 
-## 4. Дизайн
+## 4. Design
 
-### 4.1 Имя и расположение
+### 4.1 Name and location
 
-- Проект: `~/Projects/research/agentic-bioinformatics` (kebab-case, без пробелов).
-- Пустая папка `~/Projects/research/agentic bioinformatics` удаляется после явной
-  проверки абсолютного пути и пустоты.
-- Команда: `newproj agentic-bioinformatics --root /Users/vitalypesnev/Projects/research`
-  (без `--no-github`, так как пользователь запросил приватный remote).
+- Original project path: `~/Projects/research/agentic-bioinformatics`.
+- The GitHub repository and local folder are now named `agentic-bioinformatics-research`.
+- Created with `newproj agentic-bioinformatics --root ~/Projects/research`; GitHub was
+  created automatically because `gh` was authenticated.
 
-### 4.2 Среда
+### 4.2 Environment
 
-- Python 3.13 из miniforge, изолированный `.venv` внутри проекта.
-- Зависимости: `pyproject.toml` (намерения) + `uv.lock` (точные версии, коммитится).
-- Воспроизведение: `uv sync`. Для замеров — напрямую `.venv/bin/python`, без накладных
-  расходов `uv` (и с `UV_CACHE_DIR` в песочнице при необходимости).
-- `.env.example` — шаблон переменных; `.env` — только локально, в `.gitignore`.
+- Python 3.13 from miniforge; isolated `.venv` inside the project.
+- `pyproject.toml` declares intent; `uv.lock` pins exact versions (committed).
+- Reproduction: `uv sync`. Run measurements with `.venv/bin/python`.
+- `.env.example` holds placeholders; `.env` is gitignored.
 
-### 4.3 Структура
+### 4.3 Structure
 
 ```
-agentic-bioinformatics/
-├── AGENTS.md              # правила работы агентов в репозитории
-├── README.md              # назначение + команда воспроизведения
-├── pyproject.toml         # единственный источник зависимостей
-├── uv.lock                # зафиксированные версии (committed)
-├── .gitignore             # .venv, кэши, .env, сырые данные
-├── .env.example           # заглушки для ключей API
-├── Makefile               # make check, make run EXP=...
-├── src/
-│   └── abio/
-│       ├── metrics/       # coverage_matrix, capture_recapture, canaries
-│       ├── judge/         # rubric, blind judging, классы доказательств
-│       └── harness/       # адаптеры: langgraph / deepseek-harness
-├── experiments/           # по папке на дизайн: config.yaml, run.py, traces/, results/
-├── data/
-│   ├── raw/               # иммутабельные исходные данные
-│   ├── reference/         # данные с известной правдой (напр. Genome in a Bottle)
-│   └── canaries/          # инжектированные известные дефекты
-├── docs/
-│   ├── literature/        # карта литературы по MAS и agentic bioinformatics
-│   └── superpowers/       # spec-и и планы
-├── notebooks/             # разведка, не источник правды
-└── tests/                 # проверки работоспособности окружения
+agentic-bioinformatics-research/
+├── AGENTS.md / README.md / CONTRIBUTING.md / CITATION.cff / LICENSE
+├── pyproject.toml / uv.lock / .python-version / .gitignore / .env.example
+├── Makefile                 # check, run, sweep
+├── src/agentic_bioinformatics/
+│   ├── run.py               # run artifacts
+│   ├── repro.py             # seed, aggregation, tokens
+│   ├── provenance.py        # snapshot, validation
+│   ├── evidence.py          # executable evidence gate
+│   ├── trace.py             # structured events
+│   ├── metrics/             # coverage, canaries
+│   ├── judge/               # rubric, validation
+│   └── harness/             # replaceable adapter protocol
+├── experiments/<name>/      # config.yaml, run.py, runs/
+├── data/{raw,reference,canaries}/
+├── docs/{superpowers,literature}/
+├── notebooks/
+└── tests/
 ```
 
-### 4.4 Правила воспроизводимости experiments
+### 4.4 Experiment rules
 
-- Один меняющийся фактор за раз; равный токен-бюджет для сравнения; минимум 3–5
-  повторов с разными сидами; байслайн «один агент» перед любой оркестрацией.
-- Каждый прогон пишет в `experiments/<name>/runs/<timestamp>-<seed>/`:
-  `config.yaml` (включая версию модели и харнеса), `trace.jsonl`, `metrics.json`,
-  `summary.md`.
-- Статус «подтверждено» присваивается только исполняемым доказательством (PoC, тест,
-  крэш под санитайзером, опора на ground truth); «опровергнуто» — только контр-доказательством,
-  не мнением LLM-судьи.
-- Полнота — оценка, а не гарантия: явная матрица покрытия + оценка остатка +
-  непокрытые зоны в отчёте.
+- One factor at a time; equal token budget; 3–5 repetitions with different seeds;
+  single-agent baseline before any orchestration.
+- Each run writes `config.yaml`, `trace.jsonl`, `metrics.json`, `summary.md` into
+  `experiments/<name>/runs/<timestamp>-<seed>/`.
+- `confirmed` requires executable proof (PoC, test, sanitizer crash, ground truth);
+  `refuted` requires counter-evidence, not an LLM judge's opinion.
+- Completeness is an estimate of the remainder plus explicitly uncovered cells.
 
-### 4.5 Харнесы
+### 4.5 Harnesses
 
-- DeepSeek Harness — повседневная обвязка (код, файлы, таблицы, субагенты).
-- Для строгих экспериментов: LangGraph (состояние, чекпоинты, трейсинг) + BioinfoMCP
-  (инструменты). Код экспериментов — чистый Python; харнес подключается через
-  `src/abio/harness/` как заменяемый адаптер, чтобы он оставался переменной, а не
-  жёсткой зависимостью.
+- DeepSeek Harness is the day-to-day workspace; LangGraph + BioinfoMCP are planned for
+  strict experiments. Experiment code stays plain Python; the harness is a replaceable
+  adapter rather than a hard dependency.
 
 ### 4.6 GitHub
 
-- `gh repo create agentic-bioinformatics --private --source=. --remote=origin --push`
-  после успешного первого локального коммита.
-- Если `gh` не авторизован или сеть недоступна: не повторять бесконечно, оставить
-  репозиторий локальным и честно сообщить пользователю команду для повтора.
+- Private remote created by `newproj`; `gh repo rename` later changed the name to
+  `agentic-bioinformatics-research` and the local remote URL was updated.
+- If `gh` is unavailable or unauthenticated, `newproj` leaves a working local repository
+  and reports the skip without failing.
 
-### 4.7 AGENTS.md проекта
+### 4.7 Agent instructions
 
-Дополнить сгенерированный файл правилами: как запускать эксперименты, где лежат
-данные и канарейки, как оформлять прогон, куда класть spec/plan, что коммитить.
+`AGENTS.md` documents environment, layout, experiment protocol, evidence rules, and
+where to put specs and plans.
 
-## 5. Вне объёма
+## 5. Out of scope
 
-- Сами исследования и результаты (это последующие итерации).
-- Установка биоинформатических CLI-инструментов (SAMtools/GATK и т.п.) — отдельный этап.
-- Крупные датасеты и публикации.
+The research itself and its results; installing bioinformatics CLI tools; large datasets.
 
-## 6. Верификация после выполнения
+## 6. Verification
 
-1. `newproj` завершился с кодом 0; созданы `pyproject.toml`, `uv.lock`, `.venv`,
-   `.gitignore`, `README.md`, `AGENTS.md`.
-2. `.venv/bin/python --version` → 3.13.x; `uv sync` проходит.
-3. `make check` (или эквівалентный smoke-тест) зелёный.
-4. `git status --short` чист после первого коммита; `git remote -v` показывает origin.
-5. Старая папка с пробелом удалена; новая структура на месте.
+1. `newproj` exits 0 and creates the expected files.
+2. `.venv/bin/python --version` → 3.13.x; `uv sync` succeeds.
+3. `make check` is green; a smoke run produces all four artifacts.
+4. `git status` is clean after commits; `git remote -v` shows `origin`.
+5. The old folder with the space is gone.
 
-## 7. Риски и меры
+## 7. Risks and mitigations
 
-| Риск | Мера |
+| Risk | Mitigation |
 |---|---|
-| `gh` не авторизован / нет сети | Проверить `gh auth status` заранее; при неудаче — честно сообщить и оставить локальный git |
-| uv cache недоступен в песочнице | `UV_CACHE_DIR="$PWD/.uv-cache"`, директорию не коммитить |
-| Имя с пробелом в старой папке | Удалить только после проверки абсолютного пути и пустоты |
-| Случайный глобальный `pip install` | Все зависимости только через `uv add` / `uv sync` |
+| `gh` unauthenticated / no network | Check `gh auth status`; leave a local repo and report honestly |
+| uv cache unavailable in sandbox | `UV_CACHE_DIR` inside the workspace; directory is gitignored |
+| Space in the old folder name | Remove only after verifying absolute path and emptiness |
+| Accidental global `pip install` | All dependencies via `uv add` / `uv sync` |
