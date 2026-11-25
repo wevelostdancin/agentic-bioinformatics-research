@@ -4,17 +4,7 @@ from pathlib import Path
 
 import yaml
 
-# Единственный источник правды: класс -> является ли исполняемым доказательством.
-_EVIDENCE: dict[str, bool] = {
-    "hypothesis": False,
-    "code_reference": False,
-    "static_analyzer": False,
-    "reproducible_test": True,
-    "reproducible_poc": True,
-    "sanitizer_crash": True,
-    "ground_truth": True,
-}
-EVIDENCE_CLASSES: tuple[str, ...] = tuple(_EVIDENCE)
+from agentic_bioinformatics.evidence import _EVIDENCE
 
 
 def new_run(exp: str, seed: int, base: Path = Path("experiments")) -> Path:
