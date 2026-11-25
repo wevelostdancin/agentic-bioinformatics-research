@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from agentic_bioinformatics.provenance import snapshot
-from agentic_bioinformatics.repro import aggregate_runs
+from agentic_bioinformatics_research.provenance import snapshot
+from agentic_bioinformatics_research.repro import aggregate_runs
 
 ROOT = Path(__file__).resolve().parents[2]
 

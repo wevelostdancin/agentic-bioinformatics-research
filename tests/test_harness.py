@@ -1,4 +1,4 @@
-from agentic_bioinformatics.harness import HarnessAdapter
+from agentic_bioinformatics_research.harness import HarnessAdapter
 
 
 def test_dummy_adapter_satisfies_protocol():

@@ -1,4 +1,4 @@
-from agentic_bioinformatics.judge.rubric import rubric
+from agentic_bioinformatics_research.judge.rubric import rubric
 
 
 def test_rubric_has_required_keys():

@@ -1,6 +1,6 @@
 import pytest
 
-from agentic_bioinformatics.run import (
+from agentic_bioinformatics_research.run import (
     append_trace,
     new_run,
     require_confirmed,
@@ -36,7 +36,7 @@ def test_confirmed_requires_proof(tmp_path):
 
 
 def test_evidence_classes_reexported_from_run():
-    from agentic_bioinformatics.run import EVIDENCE_CLASSES
+    from agentic_bioinformatics_research.run import EVIDENCE_CLASSES
 
     assert "reference_match" in EVIDENCE_CLASSES
 
@@ -50,7 +50,7 @@ def test_new_run_paths_are_unique(tmp_path):
 def test_new_run_refuses_existing_dir(tmp_path, monkeypatch):
     from datetime import datetime
 
-    import agentic_bioinformatics.run as run_mod
+    import agentic_bioinformatics_research.run as run_mod
 
     class Frozen:
         @staticmethod

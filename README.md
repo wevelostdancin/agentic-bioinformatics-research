@@ -46,7 +46,7 @@ No global package installation is required or allowed.
 
 | Path | Purpose |
 |---|---|
-| `src/agentic_bioinformatics/` | Reusable core: run artifacts, provenance, evidence, metrics, judge rubric, harness protocol |
+| `src/agentic_bioinformatics_research/` | Reusable core: run artifacts, provenance, evidence, metrics, judge rubric, harness protocol |
 | `experiments/` | One directory per study: config, runner, runs |
 | `data/raw`, `data/reference`, `data/canaries` | Immutable inputs, ground truth, injected known defects |
 | `docs/superpowers/` | Design specs and implementation plans |

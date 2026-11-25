@@ -1,6 +1,6 @@
 import json
 
-from agentic_bioinformatics.trace import TraceEvent, append_event
+from agentic_bioinformatics_research.trace import TraceEvent, append_event
 
 
 def test_trace_event_has_structured_fields():

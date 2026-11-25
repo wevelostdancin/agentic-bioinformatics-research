@@ -3,15 +3,15 @@ from pathlib import Path
 
 import yaml
 
-from agentic_bioinformatics.provenance import require_valid_run, snapshot
-from agentic_bioinformatics.repro import TokenCounter, set_seed
-from agentic_bioinformatics.run import (
+from agentic_bioinformatics_research.provenance import require_valid_run, snapshot
+from agentic_bioinformatics_research.repro import TokenCounter, set_seed
+from agentic_bioinformatics_research.run import (
     new_run,
     write_config,
     write_metrics,
     write_summary,
 )
-from agentic_bioinformatics.trace import TraceEvent, append_event
+from agentic_bioinformatics_research.trace import TraceEvent, append_event
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = Path(__file__).with_name("config.yaml")

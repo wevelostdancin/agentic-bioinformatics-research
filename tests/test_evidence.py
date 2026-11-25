@@ -1,6 +1,6 @@
 import pytest
 
-from agentic_bioinformatics.evidence import Evidence, require_confirmed
+from agentic_bioinformatics_research.evidence import Evidence, require_confirmed
 
 
 def test_executed_test_evidence_passes(tmp_path):

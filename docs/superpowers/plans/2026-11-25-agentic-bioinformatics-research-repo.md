@@ -44,7 +44,7 @@
 - [ ] Check `git remote -v` and `git check-ignore -v .venv`.
 - [ ] The bootstrap commit is created by `newproj`.
 
-**Ruling:** `uv init --app` created `src/agentic_bioinformatics` and no `main.py`;
+**Ruling:** `uv init --app` created `src/agentic_bioinformatics_research` and no `main.py`;
 the stale `[project.scripts]` was removed and that package became the buildable module.
 
 ### Task 3 — Copy spec/plan and add dev tooling
@@ -58,7 +58,7 @@ the stale `[project.scripts]` was removed and that package became the buildable 
 
 ### Task 4 — Structure, AGENTS.md, README.md, Makefile
 
-- [ ] Create `src/agentic_bioinformatics/{metrics,judge,harness}`, `experiments`,
+- [ ] Create `src/agentic_bioinformatics_research/{metrics,judge,harness}`, `experiments`,
       `data/{raw,reference,canaries}`, `docs/literature`, `notebooks`, `tests`.
 - [ ] Add `.env.example` with placeholders; extend `.gitignore` with `.uv-cache/`,
       `runs/`, `data/raw/*`.

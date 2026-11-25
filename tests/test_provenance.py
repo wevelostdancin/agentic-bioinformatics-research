@@ -4,7 +4,11 @@ from pathlib import Path
 import pytest
 import yaml
 
-from agentic_bioinformatics.provenance import require_valid_run, snapshot, validate_run
+from agentic_bioinformatics_research.provenance import (
+    require_valid_run,
+    snapshot,
+    validate_run,
+)
 
 
 def _complete_run(tmp_path, *, git_sha="a" * 40, lock_sha="b" * 64, trace=None, metrics=None):

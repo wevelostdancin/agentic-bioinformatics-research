@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-from agentic_bioinformatics.evidence import (
+from agentic_bioinformatics_research.evidence import (
     _EVIDENCE,
     EVIDENCE_CLASSES,  # noqa: F401
 )

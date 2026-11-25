@@ -59,7 +59,7 @@ agentic-bioinformatics-research/
 ├── AGENTS.md / README.md / CONTRIBUTING.md / CITATION.cff / LICENSE
 ├── pyproject.toml / uv.lock / .python-version / .gitignore / .env.example
 ├── Makefile                 # check, run, sweep
-├── src/agentic_bioinformatics/
+├── src/agentic_bioinformatics_research/
 │   ├── run.py               # run artifacts
 │   ├── repro.py             # seed, aggregation, tokens
 │   ├── provenance.py        # snapshot, validation

@@ -1,4 +1,7 @@
-from agentic_bioinformatics.judge.validation import cohen_kappa, position_swap_agreement
+from agentic_bioinformatics_research.judge.validation import (
+    cohen_kappa,
+    position_swap_agreement,
+)
 
 
 def test_cohen_kappa_perfect():

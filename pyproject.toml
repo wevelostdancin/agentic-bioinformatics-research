@@ -1,5 +1,5 @@
 [project]
-name = "agentic-bioinformatics"
+name = "agentic-bioinformatics-research"
 version = "0.1.0"
 description = "Research repo for LLM-based multi-agent systems in bioinformatics"
 license = "MIT"

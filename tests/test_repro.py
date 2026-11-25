@@ -2,7 +2,7 @@ import json
 import random
 from pathlib import Path
 
-from agentic_bioinformatics.repro import (
+from agentic_bioinformatics_research.repro import (
     TokenCounter,
     aggregate,
     aggregate_runs,

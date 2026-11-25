@@ -1,6 +1,6 @@
 import pytest
 
-from agentic_bioinformatics.metrics.coverage import (
+from agentic_bioinformatics_research.metrics.coverage import (
     capture_recapture,
     capture_recapture_ci,
     coverage_matrix,

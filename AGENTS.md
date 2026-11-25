@@ -11,7 +11,7 @@
     make check
 
 ## Layout
-- `src/agentic_bioinformatics/` — reusable code: `run.py`, `metrics/`, `judge/`, `harness/`, `provenance.py`, `evidence.py`, `trace.py`, `repro.py`.
+- `src/agentic_bioinformatics_research/` — reusable code: `run.py`, `metrics/`, `judge/`, `harness/`, `provenance.py`, `evidence.py`, `trace.py`, `repro.py`.
 - `experiments/<name>/` — one design: `config.yaml`, `run.py`, `runs/`.
 - `data/raw/` — immutable inputs; `data/reference/` — ground truth; `data/canaries/` — injected known defects.
 - `docs/superpowers/` — specs and plans; `docs/literature/` — literature map.

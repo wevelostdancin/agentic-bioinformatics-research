@@ -1,4 +1,4 @@
-from agentic_bioinformatics.metrics.canaries import canary_recall
+from agentic_bioinformatics_research.metrics.canaries import canary_recall
 
 
 def test_canary_recall_per_class():
