@@ -17,7 +17,7 @@
 - `notebooks/` — разведка, не источник правды; `tests/` — проверки.
 
 ## Эксперименты
-- Запуск: `make run EXP=<name>`. Каждый прогон пишет `config.yaml`, `trace.jsonl`, `metrics.json` в `experiments/<name>/runs/<timestamp>-<seed>/`.
+- Запуск: `make run EXP=<name>`. Каждый прогон пишет `config.yaml`, `trace.jsonl`, `metrics.json`, `summary.md` в `experiments/<name>/runs/<timestamp>-<seed>/`.
 - Один меняющийся фактор за раз, равный токен-бюджет, минимум 3–5 повторов с разными сидами, байслайн «один агент» перед оркестрацией.
 
 ## Правила доказательств

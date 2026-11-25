@@ -1,4 +1,8 @@
 name: _template
 model: deepseek
+model_version: v4.1-flash-1017
+harness: deepseek-harness
+harness_version: local
 seed: 42
 budget_tokens: 10000
+evidence_class: hypothesis

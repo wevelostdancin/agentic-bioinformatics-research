@@ -7,6 +7,7 @@ from agentic_bioinformatics.run import (
     new_run,
     write_config,
     write_metrics,
+    write_summary,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -18,7 +19,15 @@ def main() -> Path:
     run_dir = new_run(config["name"], config["seed"], base=ROOT / "experiments")
     write_config(run_dir, config)
     append_trace(run_dir, {"event": "start", "model": config["model"]})
-    write_metrics(run_dir, {"budget_tokens": config["budget_tokens"], "findings": 0})
+    write_metrics(
+        run_dir,
+        {
+            "budget_tokens": config["budget_tokens"],
+            "findings": 0,
+            "evidence_class": config.get("evidence_class", "hypothesis"),
+        },
+    )
+    write_summary(run_dir, f"# {config['name']}\n\nПрогон завершён, находок: 0.")
     return run_dir
 
 
