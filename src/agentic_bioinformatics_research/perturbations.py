@@ -67,9 +67,8 @@ def _corrupt(target: Path, rng: random.Random) -> list[dict]:
     if not candidates:
         candidates = sorted(path for path in target.rglob("*") if path.is_file())
     rng.shuffle(candidates)
-    count = max(1, len(candidates) // 2)
     changes = []
-    for path in candidates[:count]:
+    for path in candidates:
         original = path.read_bytes()
         cut = max(1, len(original) // 2)
         rewritten = original[:cut] + b"\x00" * 8

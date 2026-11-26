@@ -1,8 +1,8 @@
 name: pilot
 adapter: plain
-agent: scripted
-model: none
-model_version: scripted
+agent: polza
+model: deepseek/deepseek-v4.1-flash-1017@provider=deepinfra/fp8
+model_version: v4.1-flash-1017
 harness: plain-loop
 harness_version: local
 orchestration_protocol: single
@@ -14,4 +14,4 @@ tool_versions: {}
 matrix:
   orchestration_protocol: [single, supervisor]
   perturbation: [none, decoy_files, corrupted_inputs]
-  seed: [1, 2, 3, 4, 5]
+  seed: [1, 2, 3]
