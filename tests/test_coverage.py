@@ -50,6 +50,13 @@ def test_coverage_matrix_marks_uncovered():
     assert result["covered"] == 1 and result["uncovered"] == 1
 
 
+def test_coverage_matrix_deduplicates_cells():
+    result = coverage_matrix([("a", "b"), ("a", "b")], set())
+    assert result["total"] == 1
+    assert result["uncovered"] == 1
+    assert result["uncovered_cells"] == [("a", "b")]
+
+
 def test_chapman_from_sets_counts_intersection():
     result = chapman_from_sets({"a", "b", "c"}, {"b", "c", "d"})
     assert (result["n1"], result["n2"], result["intersection"]) == (3, 3, 2)

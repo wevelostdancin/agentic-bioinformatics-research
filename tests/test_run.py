@@ -27,12 +27,21 @@ def test_run_artifacts(tmp_path):
 
 def test_confirmed_requires_proof(tmp_path):
     with pytest.raises(ValueError):
-        require_confirmed("hypothesis", tmp_path / "missing")
+        require_confirmed("hypothesis", tmp_path / "missing", "pytest -q", 0)
     with pytest.raises(FileNotFoundError):
-        require_confirmed("reproducible_poc", tmp_path / "missing")
+        require_confirmed("reproducible_poc", tmp_path / "missing", "pytest -q", 0)
     proof = tmp_path / "poc.txt"
     proof.write_text("ok", encoding="utf-8")
-    require_confirmed("reproducible_poc", proof)
+    require_confirmed("reproducible_poc", proof, "pytest -q", 0)
+
+
+def test_confirmed_rejects_failed_or_missing_command(tmp_path):
+    proof = tmp_path / "proof.txt"
+    proof.write_text("ok", encoding="utf-8")
+    with pytest.raises(ValueError):
+        require_confirmed("reproducible_test", proof, "pytest -q", 1)
+    with pytest.raises(ValueError):
+        require_confirmed("reproducible_test", proof, "", 0)
 
 
 def test_evidence_classes_reexported_from_run():
@@ -66,13 +75,15 @@ def test_new_run_refuses_existing_dir(tmp_path, monkeypatch):
 def test_confirmed_accepts_test_and_ground_truth(tmp_path):
     proof = tmp_path / "proof.txt"
     proof.write_text("ok", encoding="utf-8")
-    require_confirmed("reproducible_test", proof)
-    require_confirmed("ground_truth", proof)
+    require_confirmed("reproducible_test", proof, "pytest -q", 0)
+    require_confirmed("ground_truth", proof, "compare.py", 0)
 
 
 def test_confirmed_rejects_missing_artifact(tmp_path):
     with pytest.raises(FileNotFoundError):
-        require_confirmed("reproducible_poc", artifact=tmp_path / "missing.py")
+        require_confirmed(
+            "reproducible_poc", tmp_path / "missing.py", "pytest -q", 0
+        )
 
 
 def test_write_summary(tmp_path):

@@ -60,11 +60,12 @@ def chapman_from_sets(first: set[str], second: set[str]) -> dict:
 def coverage_matrix(
     cells: list[tuple[str, str]], covered: set[tuple[str, str]]
 ) -> dict:
+    unique_cells = list(dict.fromkeys(cells))
     found = set(covered)
-    uncovered = [cell for cell in cells if cell not in found]
+    uncovered = [cell for cell in unique_cells if cell not in found]
     return {
-        "total": len(cells),
-        "covered": len(cells) - len(uncovered),
+        "total": len(unique_cells),
+        "covered": len(unique_cells) - len(uncovered),
         "uncovered": len(uncovered),
         "uncovered_cells": uncovered,
     }

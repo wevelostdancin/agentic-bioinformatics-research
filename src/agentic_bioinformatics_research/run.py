@@ -5,8 +5,11 @@ from pathlib import Path
 import yaml
 
 from agentic_bioinformatics_research.evidence import (
-    _EVIDENCE,
     EVIDENCE_CLASSES,  # noqa: F401
+    Evidence,
+)
+from agentic_bioinformatics_research.evidence import (
+    require_confirmed as require_evidence,
 )
 
 
@@ -37,8 +40,12 @@ def write_summary(run_dir: Path, text: str) -> None:
     (run_dir / "summary.md").write_text(text.rstrip() + "\n", encoding="utf-8")
 
 
-def require_confirmed(evidence: str, artifact: Path) -> None:
-    if not _EVIDENCE.get(evidence, False):
-        raise ValueError(f"{evidence!r} is not an executable proof")
-    if not artifact.is_file():
-        raise FileNotFoundError(f"evidence artifact not found: {artifact}")
+def require_confirmed(
+    evidence: str, artifact: Path, command: str, exit_code: int
+) -> None:
+    """String-keyed front end to the executable evidence gate.
+
+    The class name is what a run config records; the command and its exit code
+    are what make a finding evidence rather than a claim.
+    """
+    require_evidence(Evidence(evidence, artifact, command, exit_code))
