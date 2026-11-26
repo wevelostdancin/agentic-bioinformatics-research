@@ -34,9 +34,16 @@ See [ENVIRONMENT.md](docs/ENVIRONMENT.md) for the portability checklist and
 - A run writes four artifacts to `experiments/<exp>/runs/<UTC-timestamp>-<seed>/`:
   `config.yaml`, `trace.jsonl`, `metrics.json`, `summary.md`.
 - `config.yaml` records model and harness versions, git SHA, `uv.lock` hash,
-  input-data hashes, prompt/tool versions, seed and token usage.
+  input-data hashes, prompt/tool versions, seed, token usage and the
+  `orchestration_protocol` under test.
+- `git_dirty` records whether the working tree matched the recorded commit;
+  `require_valid_run(..., require_clean=True)` rejects runs made from a dirty tree.
 - `set_seed()` actually seeds the RNG; sweeps aggregate 3–5 repetitions as
-  mean ± confidence interval rather than reporting a single run.
+  mean ± confidence interval rather than reporting a single run. Intervals use the
+  Student-t critical value for the sample size, not the normal 1.96 approximation,
+  which understates the interval below roughly 30 repetitions.
+- `budget_tokens` is enforced by `enforce_budget()`; `validate_run()` flags runs whose
+  `tokens_used` exceed the declared budget.
 - Structured traces contain timestamps, agent ids, tool calls, and token counts,
   so they can be annotated with the MAST failure taxonomy.
 - `confirmed` status requires an `Evidence` object: a proof artifact, an executed

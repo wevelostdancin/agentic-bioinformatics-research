@@ -3,6 +3,7 @@ import pytest
 from agentic_bioinformatics_research.metrics.coverage import (
     capture_recapture,
     capture_recapture_ci,
+    chapman_from_sets,
     coverage_matrix,
     saturation_curve,
 )
@@ -47,3 +48,17 @@ def test_coverage_matrix_marks_uncovered():
     cells = [("api", "CWE-79"), ("cli", "CWE-78")]
     result = coverage_matrix(cells, {("api", "CWE-79")})
     assert result["covered"] == 1 and result["uncovered"] == 1
+
+
+def test_chapman_from_sets_counts_intersection():
+    result = chapman_from_sets({"a", "b", "c"}, {"b", "c", "d"})
+    assert (result["n1"], result["n2"], result["intersection"]) == (3, 3, 2)
+    assert result["estimate"] == pytest.approx(16 / 3 - 1)
+    assert result["ci_low"] <= result["estimate"] <= result["ci_high"]
+
+
+def test_chapman_from_sets_zero_intersection_is_undefined():
+    result = chapman_from_sets({"a"}, {"b"})
+    assert result["intersection"] == 0
+    assert result["estimate"] == float("inf")
+    assert result["ci_low"] == 2 and result["ci_high"] == float("inf")

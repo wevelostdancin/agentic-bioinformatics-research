@@ -2,10 +2,13 @@ import json
 import random
 from pathlib import Path
 
+import pytest
+
 from agentic_bioinformatics_research.repro import (
     TokenCounter,
     aggregate,
     aggregate_runs,
+    critical_t,
     set_seed,
 )
 
@@ -60,10 +63,57 @@ def test_aggregate_runs_filters_by_git_sha(tmp_path):
     assert result["n"] == 1 and result["mean"] == 7
 
 
-def _write_run(base: Path, name: str, metrics: dict, git_sha: str = "0" * 40) -> None:
+def _write_run(
+    base: Path,
+    name: str,
+    metrics: dict,
+    git_sha: str = "0" * 40,
+    extra: dict | None = None,
+) -> None:
     run_dir = base / "exp" / "runs" / name
     run_dir.mkdir(parents=True)
     (run_dir / "metrics.json").write_text(json.dumps(metrics), encoding="utf-8")
+    config = {"git_sha": git_sha, **(extra or {})}
     (run_dir / "config.yaml").write_text(
-        f'git_sha: "{git_sha}"\n', encoding="utf-8"
+        "".join(f"{key}: {json.dumps(value)}\n" for key, value in config.items()),
+        encoding="utf-8",
     )
+
+
+def test_critical_t_matches_table():
+    assert critical_t(2) == pytest.approx(12.706)
+    assert critical_t(5) == pytest.approx(2.776)
+    assert critical_t(100) == 1.96
+
+
+def test_critical_t_rejects_single_observation():
+    with pytest.raises(ValueError):
+        critical_t(1)
+
+
+def test_aggregate_uses_student_t_for_small_n():
+    result = aggregate([1, 2, 3])
+    assert result["ci_high"] - result["mean"] == pytest.approx(4.303 / 3**0.5, rel=1e-3)
+
+
+def test_aggregate_runs_uses_custom_metric(tmp_path):
+    _write_run(tmp_path, "a", {"confirmed_count": 2})
+    _write_run(tmp_path, "b", {"confirmed_count": 4})
+    result = aggregate_runs(tmp_path, "exp", metric="confirmed_count")
+    assert result["n"] == 2 and result["mean"] == 3
+
+
+def test_aggregate_runs_skips_non_numeric_metric(tmp_path):
+    _write_run(tmp_path, "a", {"confirmed_count": 2})
+    _write_run(tmp_path, "b", {"confirmed_count": "two"})
+    assert aggregate_runs(tmp_path, "exp", metric="confirmed_count")["n"] == 1
+
+
+def test_aggregate_runs_groups_by_config_factor(tmp_path):
+    _write_run(tmp_path, "a", {"findings": 1}, extra={"orchestration_protocol": "debate"})
+    _write_run(tmp_path, "b", {"findings": 3}, extra={"orchestration_protocol": "debate"})
+    _write_run(tmp_path, "c", {"findings": 5}, extra={"orchestration_protocol": "single"})
+    grouped = aggregate_runs(tmp_path, "exp", group_by=("orchestration_protocol",))
+    assert set(grouped) == {"debate", "single"}
+    assert grouped["debate"]["n"] == 2 and grouped["debate"]["mean"] == 2
+    assert grouped["single"]["n"] == 1 and grouped["single"]["mean"] == 5

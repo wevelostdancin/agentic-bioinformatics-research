@@ -42,6 +42,21 @@ def saturation_curve(counts: list[int]) -> list[float]:
     return result
 
 
+def chapman_from_sets(first: set[str], second: set[str]) -> dict:
+    """Chapman estimate of the true finding count from two independent sweeps."""
+    n1, n2, m = len(first), len(second), len(first & second)
+    estimate = capture_recapture(n1, n2, m)
+    ci_low, ci_high = capture_recapture_ci(n1, n2, m)
+    return {
+        "n1": n1,
+        "n2": n2,
+        "intersection": m,
+        "estimate": estimate,
+        "ci_low": ci_low,
+        "ci_high": ci_high,
+    }
+
+
 def coverage_matrix(
     cells: list[tuple[str, str]], covered: set[tuple[str, str]]
 ) -> dict:

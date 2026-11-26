@@ -6,6 +6,8 @@ from pathlib import Path
 
 import yaml
 
+from agentic_bioinformatics_research.harness import ORCHESTRATION_PROTOCOLS
+
 ARTIFACTS = ("config.yaml", "trace.jsonl", "metrics.json", "summary.md")
 REQUIRED_CONFIG_FIELDS = (
     "model_version",
@@ -20,18 +22,20 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def snapshot(repo_root: Path, config: dict) -> dict:
+def _git(repo_root: Path, *args: str) -> str | None:
     result = subprocess.run(
-        ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+        ["git", "-C", str(repo_root), *args],
         capture_output=True,
         text=True,
         check=False,
     )
-    git_sha = (
-        result.stdout.strip()
-        if result.returncode == 0 and result.stdout.strip()
-        else "unknown"
-    )
+    return result.stdout if result.returncode == 0 else None
+
+
+def snapshot(repo_root: Path, config: dict) -> dict:
+    head = _git(repo_root, "rev-parse", "HEAD")
+    git_sha = head.strip() if head and head.strip() else "unknown"
+    status = _git(repo_root, "status", "--porcelain")
     lock = repo_root / "uv.lock"
     data_root = repo_root / "data"
     data_hashes = {}
@@ -41,6 +45,7 @@ def snapshot(repo_root: Path, config: dict) -> dict:
                 data_hashes[str(path.relative_to(repo_root))] = _sha256(path)
     return {
         "git_sha": git_sha,
+        "git_dirty": bool(status.strip()) if status is not None else None,
         "uv_lock_sha256": _sha256(lock) if lock.is_file() else "unknown",
         "data_sha256": data_hashes,
         "prompt_version": config.get("prompt_version", "unknown"),
@@ -48,7 +53,7 @@ def snapshot(repo_root: Path, config: dict) -> dict:
     }
 
 
-def validate_run(run_dir: Path) -> list[str]:
+def validate_run(run_dir: Path, *, require_clean: bool = False) -> list[str]:
     issues = []
     for name in ARTIFACTS:
         if not (run_dir / name).is_file():
@@ -70,6 +75,11 @@ def validate_run(run_dir: Path) -> list[str]:
             or not re.fullmatch(rf"[0-9a-f]{{{length}}}", value)
         ):
             issues.append(f"invalid {key}")
+    protocol = cfg.get("orchestration_protocol")
+    if protocol is not None and protocol not in ORCHESTRATION_PROTOCOLS:
+        issues.append(f"unknown orchestration_protocol: {protocol!r}")
+    if require_clean and cfg.get("git_dirty"):
+        issues.append("run recorded from a dirty working tree")
     trace_text = ""
     trace_path = run_dir / "trace.jsonl"
     if trace_path.is_file():
@@ -83,6 +93,7 @@ def validate_run(run_dir: Path) -> list[str]:
             except json.JSONDecodeError:
                 issues.append("invalid trace.jsonl line")
                 break
+    metrics = {}
     metrics_path = run_dir / "metrics.json"
     if metrics_path.is_file():
         try:
@@ -93,10 +104,20 @@ def validate_run(run_dir: Path) -> list[str]:
         for key in ("findings", "confirmed_count", "evidence_class", "tokens_used"):
             if key not in metrics:
                 issues.append(f"missing metrics field: {key}")
+    budget = cfg.get("budget_tokens")
+    tokens = metrics.get("tokens_used")
+    if (
+        isinstance(budget, int)
+        and not isinstance(budget, bool)
+        and isinstance(tokens, dict)
+    ):
+        spent = int(tokens.get("in_tokens", 0)) + int(tokens.get("out_tokens", 0))
+        if spent > budget:
+            issues.append(f"tokens_used {spent} exceeds budget_tokens {budget}")
     return issues
 
 
-def require_valid_run(run_dir: Path) -> None:
-    issues = validate_run(run_dir)
+def require_valid_run(run_dir: Path, *, require_clean: bool = False) -> None:
+    issues = validate_run(run_dir, require_clean=require_clean)
     if issues:
         raise ValueError("; ".join(issues))

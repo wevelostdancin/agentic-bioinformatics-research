@@ -89,3 +89,43 @@ def test_validate_run_handles_broken_yaml(tmp_path):
 def test_require_valid_run_raises(tmp_path):
     with pytest.raises(ValueError):
         require_valid_run(tmp_path)
+
+
+def _patch_config(tmp_path, **fields):
+    path = tmp_path / "config.yaml"
+    cfg = yaml.safe_load(path.read_text(encoding="utf-8"))
+    cfg.update(fields)
+    path.write_text(yaml.safe_dump(cfg), encoding="utf-8")
+
+
+def test_snapshot_records_working_tree_state():
+    root = Path(__file__).resolve().parents[1]
+    state = snapshot(root, {})
+    assert isinstance(state["git_dirty"], bool)
+
+
+def test_validate_run_flags_dirty_tree_only_in_strict_mode(tmp_path):
+    _complete_run(tmp_path)
+    _patch_config(tmp_path, git_dirty=True)
+    assert validate_run(tmp_path) == []
+    assert any("dirty" in issue for issue in validate_run(tmp_path, require_clean=True))
+
+
+def test_validate_run_accepts_known_protocol(tmp_path):
+    _complete_run(tmp_path)
+    _patch_config(tmp_path, orchestration_protocol="debate")
+    assert validate_run(tmp_path) == []
+
+
+def test_validate_run_rejects_unknown_protocol(tmp_path):
+    _complete_run(tmp_path)
+    _patch_config(tmp_path, orchestration_protocol="swarm_of_swarms")
+    assert any("orchestration_protocol" in i for i in validate_run(tmp_path))
+
+
+def test_validate_run_rejects_budget_overrun(tmp_path):
+    _complete_run(
+        tmp_path, metrics={"tokens_used": {"in_tokens": 900, "out_tokens": 200}}
+    )
+    _patch_config(tmp_path, budget_tokens=1000)
+    assert any("budget" in issue for issue in validate_run(tmp_path))
