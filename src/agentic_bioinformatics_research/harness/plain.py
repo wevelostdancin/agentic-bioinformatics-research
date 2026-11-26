@@ -50,6 +50,32 @@ class PlainLoopAdapter:
                 )
             reply = call("aggregate", files, {"workspace": str(workspace), "claims": partial})
             findings = self._record(events, "supervisor", reply.claims, "answer", reply)
+        elif self.protocol == "debate":
+            half = max(1, len(files) // 2)
+            groups = [files[:half], files[half:]]
+            first: list[dict] = []
+            for index, group in enumerate(groups):
+                reply = call(
+                    "analyze", group, {"workspace": str(workspace), "claims": []}
+                )
+                first.extend(
+                    self._record(events, f"debater-{index}", reply.claims, "round1", reply)
+                )
+            revised: list[dict] = []
+            for index, group in enumerate(groups):
+                peer = [
+                    claim
+                    for claim in first
+                    if not claim["artifact_id"].startswith(f"debater-{index}-")
+                ]
+                reply = call(
+                    "analyze", group, {"workspace": str(workspace), "claims": peer}
+                )
+                revised.extend(
+                    self._record(events, f"debater-{index}", reply.claims, "round2", reply)
+                )
+            reply = call("aggregate", files, {"workspace": str(workspace), "claims": revised})
+            findings = self._record(events, "debate", reply.claims, "answer", reply)
         else:
             raise ValueError(
                 f"protocol not supported by the plain loop: {self.protocol!r}"

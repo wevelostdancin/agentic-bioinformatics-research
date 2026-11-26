@@ -82,6 +82,14 @@ def test_corrupted_inputs_rewrite_bytes(tmp_path):
         assert change["sha256_after"] == hashlib.sha256(rewritten).hexdigest()
 
 
+def test_decoys_cover_both_data_shapes(tmp_path):
+    src = _task(tmp_path / "src")
+    manifest = apply_perturbation("decoy_files", src, tmp_path / "dst", 1)
+    names = {change["path"] for change in manifest["changes"]}
+    assert "sample_OTHER_counts.tsv" in names
+    assert "variants_old_batch.tsv" in names
+
+
 def test_decoy_files_are_added(tmp_path):
     src = _task(tmp_path / "src")
     manifest = apply_perturbation("decoy_files", src, tmp_path / "dst", 2)

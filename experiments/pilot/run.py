@@ -33,7 +33,11 @@ from agentic_bioinformatics_research.trace import TraceEvent, append_event
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config.yaml"
-TASK = HERE / "task"
+TASKS_DIR = HERE / "tasks"
+TASK_DIRS = {
+    "genes": TASKS_DIR / "genes",
+    "variants": TASKS_DIR / "variants",
+}
 
 
 def load_env(path: Path) -> None:
@@ -55,8 +59,41 @@ def build_agent(name: str, config: dict):
     raise ValueError(f"unknown agent: {name!r}")
 
 
-def expected_genes() -> list[str]:
-    return top_genes(fold_changes(read_counts(TASK / "counts.tsv")))
+def read_variants(path: Path) -> list[dict]:
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines()[1:]:
+        parts = line.split("\t")
+        if len(parts) != 7:
+            continue
+        chrom, pos, ref, alt, qual, depth, flt = parts
+        rows.append(
+            {
+                "label": f"{chrom}:{pos}:{ref}>{alt}",
+                "pos": int(pos),
+                "qual": float(qual),
+                "depth": int(depth),
+                "filter": flt,
+            }
+        )
+    return rows
+
+
+def top_variants(path: Path) -> list[str]:
+    kept = [
+        row
+        for row in read_variants(path)
+        if row["filter"] == "PASS" and row["qual"] >= 30 and row["depth"] >= 10
+    ]
+    kept.sort(key=lambda row: (-row["qual"], row["pos"]))
+    return [row["label"] for row in kept[:3]]
+
+
+def expected(task: str) -> list[str]:
+    if task == "genes":
+        return top_genes(fold_changes(read_counts(TASK_DIRS["genes"] / "counts.tsv")))
+    if task == "variants":
+        return top_variants(TASK_DIRS["variants"] / "variants.tsv")
+    raise ValueError(f"unknown task: {task!r}")
 
 
 def completed_cells(runs_dir: Path) -> set[tuple]:
@@ -73,6 +110,7 @@ def completed_cells(runs_dir: Path) -> set[tuple]:
         if isinstance(cfg, dict):
             done.add(
                 (
+                    cfg.get("task"),
                     cfg.get("orchestration_protocol"),
                     cfg.get("perturbation"),
                     cfg.get("seed"),
@@ -86,9 +124,10 @@ def run_cell(base_config, cell, truth):
     config.update(cell)
     seed = int(config["seed"])
     set_seed(seed)
+    task_dir = TASK_DIRS[config["task"]]
     run_dir = new_run(config["name"], seed, base=ROOT / "experiments")
     workspace = run_dir / "workspace"
-    manifest = apply_perturbation(config["perturbation"], TASK, workspace, seed)
+    manifest = apply_perturbation(config["perturbation"], task_dir, workspace, seed)
     config.update(snapshot(ROOT, config))
     config["perturbation_sha256"] = manifest["sha256"]
     write_config(run_dir, config)
@@ -105,7 +144,7 @@ def run_cell(base_config, cell, truth):
             {
                 "workspace": str(workspace),
                 "budget_tokens": int(config["budget_tokens"]),
-                "task": (TASK / "task.md").read_text(encoding="utf-8"),
+                "task": (task_dir / "task.md").read_text(encoding="utf-8"),
             }
         )
     except Exception as exc:  # noqa: BLE001 - a failed cell must not kill the grid
@@ -161,8 +200,11 @@ def run_cell(base_config, cell, truth):
             [
                 f"# {config['name']}",
                 "",
-                "SCRIPTED AGENT: deterministic stand-in, not a model. These numbers",
-                "validate the harness, not LLM behaviour.",
+                (
+                    "SCRIPTED AGENT: deterministic stand-in, not a model."
+                    if config["agent"] == "scripted"
+                    else f"MODEL AGENT: {config['model']}"
+                ),
                 "",
                 f"- protocol: {config['orchestration_protocol']}",
                 f"- perturbation: {config['perturbation']} ({manifest['sha256'][:12]})",
@@ -180,13 +222,14 @@ def run_cell(base_config, cell, truth):
 def main(limit: int | None = None):
     load_env(ROOT / ".env")
     base_config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
-    truth = expected_genes()
+    truths = {task: expected(task) for task in TASK_DIRS}
     cells = expand_matrix(base_config["matrix"])
     done = completed_cells(ROOT / "experiments" / base_config["name"] / "runs")
     cells = [
         cell
         for cell in cells
         if (
+            cell["task"],
             cell["orchestration_protocol"],
             cell["perturbation"],
             cell["seed"],
@@ -195,7 +238,7 @@ def main(limit: int | None = None):
     ]
     if limit is not None:
         cells = cells[:limit]
-    produced = [run_cell(base_config, cell, truth) for cell in cells]
+    produced = [run_cell(base_config, cell, truths[cell["task"]]) for cell in cells]
     runs = ROOT / "experiments" / base_config["name"] / "runs"
     print(f"{len(produced)} runs written to {runs}")
     return produced

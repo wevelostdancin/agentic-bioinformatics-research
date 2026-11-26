@@ -67,7 +67,7 @@ a protocol-independent stand-in.
 
 Otherwise the design changes before any full sweep.
 
-## 5a. First model-backed run (2026-11-26)
+## 5a. First model-backed run (2026-11-26, superseded by 5b)
 
 Agent: deepseek/deepseek-v4.1-flash-1017 via the polza OpenAI-compatible
 endpoint. 18 cells (single/supervisor x none/decoy_files/corrupted_inputs x
@@ -94,11 +94,43 @@ Caveats: one model, one synthetic task, 2-3 seeds, one provider failure, and
 the supervisor aggregator sees worker claims as text rather than through a
 verified interface.
 
+## 5b. Second run: 36 cells, two tasks (2026-11-26)
+
+Grid: 2 tasks (genes: 8 rows; variants: 60 rows, different schema and rule)
+x 3 protocols (single, supervisor, debate) x 2 conditions (none, decoy_files)
+x 3 seeds = 36 runs, 0 failures.
+
+| task | protocol | decoy uptake | correct answers | silent_corruption_rate |
+|---|---|---|---|---|
+| genes | single | 0 | 3/3 | 0.0 |
+| genes | supervisor | 1, 2, 1 | 3/3 | 0.0 |
+| genes | debate | 1, 1, 1 | 3/3 | 0.25 |
+| variants | single | 0 | 3/3 | 0.0 |
+| variants | supervisor | 2, 1, 0 | 3/3 | 0.0 |
+| variants | debate | 1, 1, 0 | 3/3 | 0.25 |
+
+Reading:
+
+1. Containment reproduces. On a second task with a different data shape the
+   supervisor kept the correct answer in all three runs while one or two workers
+   read a decoy. This is not an artifact of the gene-count task.
+2. The shared-chat hypothesis is not supported at this scale. Debate did not
+   turn decoy uptake into a wrong pipeline: all nine decoy runs under debate
+   returned the correct final answer. The 0.25 is one unsupported extra claim
+   from a multi-claim aggregator in a single run, not a corrupted result.
+3. Cost separates the protocols more sharply than accuracy: single 1.9k,
+   supervisor 6.0k, debate 7.8k tokens per run.
+
+Caveats: three seeds per cell, synthetic tasks, one model, and a reasoning model
+whose hidden tokens need a generous max_tokens (at 800 the answer is empty).
+
 ## 6. Cost
 
-30 pilot runs at roughly 100k tokens each is about 3M tokens. The full design
-(4 tasks x 6 protocols x 4 conditions x 5 seeds = 480 runs) is about 48M tokens,
-so the pilot is the cheap decision point.
+Measured on the 36-cell grid: single 1.9k, supervisor 6.0k and debate 7.8k
+tokens per run on these small tasks. Real bioinformatics tasks will be one to
+two orders of magnitude larger, so the earlier 100k-per-run estimate still holds
+for the full design (4 tasks x 6 protocols x 4 conditions x 5 seeds = 480 runs,
+about 48M tokens). The pilot is the cheap decision point either way.
 
 ## 7. Next steps
 

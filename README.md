@@ -89,9 +89,10 @@ The `experiments/pilot/` directory runs the protocol x perturbation grid
 small fixture task. The injector copies the task, applies one perturbation
 deterministically, and records a hashed manifest per run, so the perturbation
 itself is reproducible. The adapter is a stdlib plain loop: it owns
-coordination, artifact edges and the token budget, and nothing else. The
-bundled agent is scripted, not a model: it validates the harness, not LLM
-behaviour, and must be replaced by a model adapter before any measurement.
+coordination, artifact edges and the token budget, and nothing else. Two
+agents ship: a scripted stand-in for offline plumbing checks and a
+model-backed agent over an OpenAI-compatible endpoint, with the key read from
+.env. The default pilot config uses the model.
 
 ## Citation
 

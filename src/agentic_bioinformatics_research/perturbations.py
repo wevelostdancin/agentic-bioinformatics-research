@@ -28,6 +28,12 @@ _BLOAT_SENTENCES = (
 
 _DECOY_FILES: dict[str, str] = {
     "sample_OTHER_counts.tsv": "gene\tcontrol_mean\ttreated_mean\nG9\t10\t1000\nG10\t5\t400\n",
+    "variants_old_batch.tsv": (
+        "chrom\tpos\tref\talt\tqual\tdepth\tfilter\n"
+        "chr1\t500\tA\tG\t99\t80\tPASS\n"
+        "chr2\t900\tC\tT\t98\t70\tPASS\n"
+        "chr3\t1200\tG\tA\t97\t60\tPASS\n"
+    ),
     "reference_GRCh99.fa": ">chr1_GRCh99\nACGTACGTACGTACGTACGT\n",
     "batch_2024_qc.txt": "batch\tstatus\n2024-01\tpass\n2024-02\tflagged\n",
     "old_run_notes.md": "# Legacy run\n\nThis run used the deprecated pipeline v0.9.\n",
@@ -86,12 +92,11 @@ def _corrupt(target: Path, rng: random.Random) -> list[dict]:
 
 
 def _decoys(target: Path, rng: random.Random) -> list[dict]:
-    # At least one decoy must look like a data file, otherwise the perturbation
-    # has nothing to tempt an agent with.
-    pool = sorted(name for name in _DECOY_FILES if name != "sample_OTHER_counts.tsv")
-    chosen = ["sample_OTHER_counts.tsv"] + sorted(
-        rng.sample(pool, rng.randint(1, len(pool)))
-    )
+    # One decoy per data shape is always present, otherwise the perturbation has
+    # nothing to tempt an agent with on some task.
+    required = ("sample_OTHER_counts.tsv", "variants_old_batch.tsv")
+    pool = sorted(name for name in _DECOY_FILES if name not in required)
+    chosen = list(required) + sorted(rng.sample(pool, rng.randint(1, len(pool))))
     changes = []
     for name in chosen:
         (target / name).write_text(_DECOY_FILES[name], encoding="utf-8")

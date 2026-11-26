@@ -160,10 +160,20 @@ class PolzaAgent:
                 "available files between at most three workers."
             )
         elif role == "analyze":
+            peer = context.get("claims") or []
+            if peer:
+                parts.append(
+                    "PEER CLAIMS FROM THE OTHER DEBATER:\n"
+                    + json.dumps(peer, ensure_ascii=False)[:3000]
+                )
+                parts.append(
+                    "Revise your answer if the peer claim is better supported, and "
+                    "cite only the files you actually used."
+                )
             parts.append(
                 'Return {"claims": [{"text": "...", "answer": {"genes": [...]}, '
                 '"references": ["<file you actually used>", ...]}]}. '
-                "Put the final ranked gene list in answer.genes. If the data is "
+                "Put the final ranked list in answer.genes. If the data is "
                 "unreadable or you cannot answer, return one claim with "
                 '"abstained": true and an empty answer instead of guessing.'
             )
@@ -178,11 +188,17 @@ class PolzaAgent:
 
     def _http(self, prompt: str) -> tuple[str, dict]:
         try:
-            return self._request(prompt, json_mode=True)
+            text, usage = self._request(prompt, json_mode=True)
         except urllib.error.HTTPError as error:
             if error.code != 400:
                 raise
             return self._request(prompt, json_mode=False)
+        except (TimeoutError, urllib.error.URLError):
+            return self._request(prompt, json_mode=False)
+        if not text.strip():
+            # Some providers answer an empty body when JSON mode is forced.
+            return self._request(prompt, json_mode=False)
+        return text, usage
 
     def _request(self, prompt: str, json_mode: bool) -> tuple[str, dict]:
         payload = {
@@ -192,7 +208,9 @@ class PolzaAgent:
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0,
-            "max_tokens": 800,
+            # Reasoning models spend this budget on hidden tokens first; too small
+            # a cap leaves an empty or truncated answer.
+            "max_tokens": 3000,
         }
         if json_mode:
             payload["response_format"] = {"type": "json_object"}
