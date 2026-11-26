@@ -34,11 +34,20 @@ Pilot subset: single / supervisor / debate x none / decoy_files x 5 seeds = 30 r
   cascade measurable from traces.
 - experiments/pilot/ — config, fixture task, matrix runner, report.
 
-## 4. What is a stub
+## 4. What is scripted
 
-experiments/pilot/run.py uses a deterministic placeholder adapter. It emits
-traces and findings without model calls, and its outcome does not depend on the
-protocol. Numbers produced by the pilot are plumbing checks, not measurements;
+The adapter (harness/plain.py) is a stdlib loop that owns coordination only:
+who talks to whom, which artifact each claim references, and the token budget.
+It supports single and supervisor; worker claims feed the supervisor answer, so
+the artifact graph has depth 2 instead of 1.
+
+The agent (harness/agents.py, ScriptedAgent) is a deterministic stand-in, not a
+model. It runs a fixed fold-change analysis over whatever files it is handed
+and is naive about file selection, so decoys and truncation reach it the way
+they would reach an unwary agent. Its answers are protocol-independent, so any
+protocol difference in the pilot is noise by construction.
+
+Numbers produced by the pilot validate the instrumentation, not LLM behaviour;
 every summary says so.
 
 ## 5. Go / no-go
@@ -51,6 +60,11 @@ Pilot passes if, on one real task with a real adapter:
    actually shows propagation rather than a flat list of findings;
 4. the effect is visible before statistics: decoy cells differ from clean cells
    by more than seed-to-seed spread.
+
+Status with the scripted agent: (1) and (2) hold; (3) holds — single gives
+depth 1 and supervisor gives depth 2 on real traces; (4) is not meaningful yet,
+because the scripted agent is protocol-independent and decoy uptake is 1.0 for
+both protocols. Criterion (4) can only be judged with a model-backed agent.
 
 Otherwise the design changes before any full sweep.
 

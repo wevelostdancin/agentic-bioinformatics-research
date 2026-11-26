@@ -1,8 +1,9 @@
 name: pilot
-adapter: stub
-model: deepseek
-model_version: v4.1-flash-1017
-harness: deepseek-harness
+adapter: plain
+agent: scripted
+model: none
+model_version: scripted
+harness: plain-loop
 harness_version: local
 orchestration_protocol: single
 seed: 1
@@ -11,6 +12,6 @@ evidence_class: hypothesis
 prompt_version: v1
 tool_versions: {}
 matrix:
-  orchestration_protocol: [single, supervisor, debate]
-  perturbation: [none, decoy_files]
+  orchestration_protocol: [single, supervisor]
+  perturbation: [none, decoy_files, corrupted_inputs]
   seed: [1, 2, 3, 4, 5]

@@ -78,18 +78,20 @@ See [ENVIRONMENT.md](docs/ENVIRONMENT.md) for the portability checklist and
 
 1. Download BioAgent Bench data (pinned in [data/manifest.yaml](data/manifest.yaml))
    and fill in SHA256 hashes with `bash scripts/check-data.sh`.
-2. Add a single-agent baseline runner and one real harness adapter (LangGraph).
+2. Add a model-backed agent to the plain-loop adapter, then a LangGraph adapter behind the same protocol.
 3. Implement perturbation factors and judge agreement validation against manual labels.
 4. Run the first 2×2 factor experiment: model strength × orchestration protocol.
 
 ## Pilot scaffolding
 
 The `experiments/pilot/` directory runs the protocol x perturbation grid
-(single / supervisor / debate x clean / decoy_files x 5 seeds) on a small
-fixture task. The injector copies the task, applies one perturbation
+(single / supervisor x clean / decoy_files / corrupted_inputs x 5 seeds) on a
+small fixture task. The injector copies the task, applies one perturbation
 deterministically, and records a hashed manifest per run, so the perturbation
-itself is reproducible. The bundled adapter is a stub: it emits traces and
-findings without model calls and must be replaced before any measurement.
+itself is reproducible. The adapter is a stdlib plain loop: it owns
+coordination, artifact edges and the token budget, and nothing else. The
+bundled agent is scripted, not a model: it validates the harness, not LLM
+behaviour, and must be replaced by a model adapter before any measurement.
 
 ## Citation
 

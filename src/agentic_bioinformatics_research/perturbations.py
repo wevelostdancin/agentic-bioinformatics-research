@@ -27,7 +27,7 @@ _BLOAT_SENTENCES = (
 )
 
 _DECOY_FILES: dict[str, str] = {
-    "sample_OTHER_counts.tsv": "gene\tcount\nENSG000001\t17\nENSG000002\t4\n",
+    "sample_OTHER_counts.tsv": "gene\tcontrol_mean\ttreated_mean\nG9\t10\t1000\nG10\t5\t400\n",
     "reference_GRCh99.fa": ">chr1_GRCh99\nACGTACGTACGTACGTACGT\n",
     "batch_2024_qc.txt": "batch\tstatus\n2024-01\tpass\n2024-02\tflagged\n",
     "old_run_notes.md": "# Legacy run\n\nThis run used the deprecated pipeline v0.9.\n",
@@ -87,8 +87,12 @@ def _corrupt(target: Path, rng: random.Random) -> list[dict]:
 
 
 def _decoys(target: Path, rng: random.Random) -> list[dict]:
-    pool = sorted(_DECOY_FILES)
-    chosen = sorted(rng.sample(pool, rng.randint(2, len(pool))))
+    # At least one decoy must look like a data file, otherwise the perturbation
+    # has nothing to tempt an agent with.
+    pool = sorted(name for name in _DECOY_FILES if name != "sample_OTHER_counts.tsv")
+    chosen = ["sample_OTHER_counts.tsv"] + sorted(
+        rng.sample(pool, rng.randint(1, len(pool)))
+    )
     changes = []
     for name in chosen:
         (target / name).write_text(_DECOY_FILES[name], encoding="utf-8")
