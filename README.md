@@ -57,7 +57,7 @@ See [ENVIRONMENT.md](docs/ENVIRONMENT.md) for the portability checklist and
 
 | Path | Purpose |
 |---|---|
-| `src/agentic_bioinformatics_research/` | Reusable core: run artifacts, provenance, evidence, metrics, judge rubric, harness protocol |
+| `src/agentic_bioinformatics_research/` | Reusable core: run artifacts, provenance, evidence, metrics, judge rubric, harness protocol, perturbations, factor matrix |
 | `experiments/` | One directory per study: config, runner, runs |
 | `data/raw`, `data/reference`, `data/canaries` | Immutable inputs, ground truth, injected known defects |
 | `docs/superpowers/` | Design specs and implementation plans |
@@ -81,6 +81,15 @@ See [ENVIRONMENT.md](docs/ENVIRONMENT.md) for the portability checklist and
 2. Add a single-agent baseline runner and one real harness adapter (LangGraph).
 3. Implement perturbation factors and judge agreement validation against manual labels.
 4. Run the first 2×2 factor experiment: model strength × orchestration protocol.
+
+## Pilot scaffolding
+
+The `experiments/pilot/` directory runs the protocol x perturbation grid
+(single / supervisor / debate x clean / decoy_files x 5 seeds) on a small
+fixture task. The injector copies the task, applies one perturbation
+deterministically, and records a hashed manifest per run, so the perturbation
+itself is reproducible. The bundled adapter is a stub: it emits traces and
+findings without model calls and must be replaced before any measurement.
 
 ## Citation
 

@@ -1,0 +1,16 @@
+name: pilot
+adapter: stub
+model: deepseek
+model_version: v4.1-flash-1017
+harness: deepseek-harness
+harness_version: local
+orchestration_protocol: single
+seed: 1
+budget_tokens: 10000
+evidence_class: hypothesis
+prompt_version: v1
+tool_versions: {}
+matrix:
+  orchestration_protocol: [single, supervisor, debate]
+  perturbation: [none, decoy_files]
+  seed: [1, 2, 3, 4, 5]

@@ -18,6 +18,19 @@ def test_trace_event_has_structured_fields():
     assert {"ts", "event_id", "tokens_in", "tokens_out", "parent_id"} <= set(data)
 
 
+def test_trace_event_records_artifact_references():
+    event = TraceEvent(
+        event="finding",
+        agent_id="a1",
+        artifact_id="finding-1",
+        references=("counts.tsv", "decoy-1.tsv"),
+    )
+    data = event.to_dict()
+    assert data["artifact_id"] == "finding-1"
+    assert data["references"] == ("counts.tsv", "decoy-1.tsv")
+    json.dumps(data)
+
+
 def test_append_event_writes_jsonl(tmp_path):
     append_event(tmp_path, TraceEvent(event="start"))
     append_event(tmp_path, TraceEvent(event="end"))

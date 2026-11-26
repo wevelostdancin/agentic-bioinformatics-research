@@ -18,6 +18,8 @@ class TraceEvent:
     tokens_in: int = 0
     tokens_out: int = 0
     parent_id: str | None = None
+    artifact_id: str | None = None
+    references: tuple[str, ...] = ()
 
     def to_dict(self) -> dict:
         return asdict(self)
